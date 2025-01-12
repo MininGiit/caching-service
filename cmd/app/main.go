@@ -1,15 +1,18 @@
 package main
 
 import (
+	"cachingService/cmd/config"
 	"cachingService/internal/infrastructure/cache"
 	"cachingService/internal/infrastructure/controller/http"
 	"cachingService/internal/usecase"
-	"time"
+	"fmt"
 )
 
 func main() {
-	cache := cache.New(10, time.Second * 5)
+	cfg := config.Init()
+	fmt.Println(cfg)
+	cache := cache.New(cfg.Cache.MaxSize, cfg.Cache.DefaultTtl)
 	uc := usecase.New(cache)
-	server := http.NewServer(uc)
+	server := http.NewServer(cfg.Server.PortHost, uc)
 	server.StartServer()
 }

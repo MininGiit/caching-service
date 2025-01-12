@@ -10,13 +10,13 @@ type Server struct {
 	httpServer   *http.Server
 }
 
-func NewServer(uc *usecase.UseCase) *Server{
+func NewServer(hostPort string, uc *usecase.UseCase) *Server{
 	handler := NewHandler(uc)
 	router := handler.InitRouter()
 	return &Server{
 		httpServer: &http.Server{
 			Handler:      router,
-			Addr:         ":8080",
+			Addr:         hostPort,
 		},
 	}
 }
