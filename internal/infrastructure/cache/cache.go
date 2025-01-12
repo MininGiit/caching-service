@@ -80,6 +80,9 @@ func (c *LRUCache) Put(ctx context.Context, key string, value interface{}, ttl t
 		}
 		c.size++
 	}
+	if ttl == 0 {
+		ttl = c.defaultTtl
+	}
 	expiresAt := time.Now().Add(ttl)
 	newItem := &Item{
 			key: 	key,
