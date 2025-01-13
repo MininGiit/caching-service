@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-func compare(resKeys []string, resValues []interface{}, keys []string, values []interface{}) bool{
-	resMap := make(map[string] interface{}, len(resKeys))
+func compare(resKeys []string, resValues []interface{}, keys []string, values []interface{}) bool {
+	resMap := make(map[string]interface{}, len(resKeys))
 	for i, resKey := range resKeys {
 		resMap[resKey] = resValues[i]
 	}
@@ -18,7 +18,7 @@ func compare(resKeys []string, resValues []interface{}, keys []string, values []
 		}
 		if resVal != values[i] {
 			return false
-		} 
+		}
 	}
 	return true
 }
@@ -26,13 +26,13 @@ func compare(resKeys []string, resValues []interface{}, keys []string, values []
 func TestPut(t *testing.T) {
 	maxSize := 10
 	len := 4
-	keys := []string {"qweer", "qwe", "123", "sdf43"}
-	values := []interface{} {1, "34", 5.5, 3}
+	keys := []string{"qweer", "qwe", "123", "sdf43"}
+	values := []interface{}{1, "34", 5.5, 3}
 	var ttl time.Duration = time.Second * 10
 	cache := New(maxSize, ttl)
 	ctx := context.Background()
 
-	expectedErrors := []error {nil, nil, nil, nil, ErrDataNotValid}
+	expectedErrors := []error{nil, nil, nil, nil, ErrDataNotValid}
 
 	for i := 0; i < len; i++ {
 		err := cache.Put(ctx, keys[i], values[i], ttl)
@@ -42,13 +42,13 @@ func TestPut(t *testing.T) {
 	}
 	if cache.size != len {
 		t.Errorf("the sixe do not match: exected %v, recived %v", len, cache.size)
-	} 
+	}
 	for i := 0; i < len; i++ {
-		recived := cache.data[keys[i]].value 
+		recived := cache.data[keys[i]].value
 		exected := values[i]
 		if recived != exected {
 			t.Errorf("the values do not match: exected %v, recived %v", exected, recived)
-		} 
+		}
 	}
 }
 
@@ -64,15 +64,15 @@ func TestUpdate(t *testing.T) {
 
 	resValue, _, _ := cache.Get(context.Background(), key)
 	if resValue != newValue {
-			t.Errorf("exected %v, recived %v", newValue, resValue)
+		t.Errorf("exected %v, recived %v", newValue, resValue)
 	}
 }
 
 func TestGet(t *testing.T) {
 	maxSize := 10
 	cashSize := 4
-	keys := []string {"qweer", "qwe", "123", "sdf43"}
-	values := []interface{} {1, "34", 5.5, 3}
+	keys := []string{"qweer", "qwe", "123", "sdf43"}
+	values := []interface{}{1, "34", 5.5, 3}
 	var ttl time.Duration = time.Second * 10
 	cache := New(maxSize, ttl)
 	ctx := context.Background()
@@ -80,9 +80,9 @@ func TestGet(t *testing.T) {
 		cache.Put(ctx, keys[i], values[i], ttl)
 	}
 
-	inputKeys := []string {"qweer", "qwe", "bv", "123", "sdf43", "sd"}
-	expectedValues := []interface{} {1, "34", nil, 5.5, 3, nil}
-	expectedErrors := []error {nil, nil, ErrKeyNotFound, nil, nil, ErrKeyNotFound}
+	inputKeys := []string{"qweer", "qwe", "bv", "123", "sdf43", "sd"}
+	expectedValues := []interface{}{1, "34", nil, 5.5, 3, nil}
+	expectedErrors := []error{nil, nil, ErrKeyNotFound, nil, nil, ErrKeyNotFound}
 
 	for i := 0; i < len(inputKeys); i++ {
 		recived, _, err := cache.Get(ctx, inputKeys[i])
@@ -92,15 +92,15 @@ func TestGet(t *testing.T) {
 		exected := expectedValues[i]
 		if recived != exected {
 			t.Errorf("exected %v, recived %v", exected, recived)
-		} 
+		}
 	}
 }
 
 func TestGetAll(t *testing.T) {
 	maxSize := 10
 	cashSize := 4
-	keys := []string {"qweer", "qwe", "123", "sdf43"}
-	values := []interface{} {1, "34", 5.5, 3}
+	keys := []string{"qweer", "qwe", "123", "sdf43"}
+	values := []interface{}{1, "34", 5.5, 3}
 	var ttl time.Duration = time.Second * 10
 	cache := New(maxSize, ttl)
 	ctx := context.Background()
@@ -132,22 +132,21 @@ func TestEvictAllForEmpty(t *testing.T) {
 	}
 }
 
-
 func TestEvict(t *testing.T) {
 	maxSize := 10
 	cashSize := 4
-	keys := []string {"qweer", "qwe", "123", "sdf43"}
-	values := []interface{} {1, "34", 5.5, 3}
+	keys := []string{"qweer", "qwe", "123", "sdf43"}
+	values := []interface{}{1, "34", 5.5, 3}
 	var ttl time.Duration = time.Second * 10
 	cache := New(maxSize, ttl)
 	ctx := context.Background()
 	for i := 0; i < cashSize; i++ {
 		cache.Put(ctx, keys[i], values[i], ttl)
 	}
-	
-	inputKeys := []string {"qweer", "qwe", "123", "sdf43"}
-	expectedValues := []interface{} {nil, "34", nil, 3}
-	expectedErrors := []error {ErrKeyNotFound, nil, ErrKeyNotFound, nil}
+
+	inputKeys := []string{"qweer", "qwe", "123", "sdf43"}
+	expectedValues := []interface{}{nil, "34", nil, 3}
+	expectedErrors := []error{ErrKeyNotFound, nil, ErrKeyNotFound, nil}
 
 	_, err := cache.Evict(ctx, "qweer")
 	if err != nil {
@@ -166,25 +165,25 @@ func TestEvict(t *testing.T) {
 		exected := expectedValues[i]
 		if recived != exected {
 			t.Errorf("exected %v, recived %v", exected, recived)
-		} 
+		}
 	}
 }
 
 func TestEvictAll(t *testing.T) {
 	maxSize := 10
 	cashSize := 4
-	keys := []string {"qweer", "qwe", "123", "sdf43"}
-	values := []interface{} {1, "34", 5.5, 3}
+	keys := []string{"qweer", "qwe", "123", "sdf43"}
+	values := []interface{}{1, "34", 5.5, 3}
 	var ttl time.Duration = time.Second * 10
 	cache := New(maxSize, ttl)
 	ctx := context.Background()
 	for i := 0; i < cashSize; i++ {
 		cache.Put(ctx, keys[i], values[i], ttl)
 	}
-	
-	inputKeys := []string {"qweer", "qwe", "123", "sdf43"}
-	expectedValues := []interface{} {nil, nil, nil, nil}
-	expectedErrors := []error {ErrKeyNotFound, ErrKeyNotFound, ErrKeyNotFound, ErrKeyNotFound}
+
+	inputKeys := []string{"qweer", "qwe", "123", "sdf43"}
+	expectedValues := []interface{}{nil, nil, nil, nil}
+	expectedErrors := []error{ErrKeyNotFound, ErrKeyNotFound, ErrKeyNotFound, ErrKeyNotFound}
 
 	err := cache.EvictAll(ctx)
 	if err != nil {
@@ -198,15 +197,15 @@ func TestEvictAll(t *testing.T) {
 		exected := expectedValues[i]
 		if recived != exected {
 			t.Errorf("exected %v, recived %v", exected, recived)
-		} 
+		}
 	}
 }
 
 func TestLRU(t *testing.T) {
 	maxSize := 4
 	cashSize := 4
-	keys := []string {"qweer", "qwe", "123", "sdf43"}
-	values := []interface{} {1, "34", 5.5, 3}
+	keys := []string{"qweer", "qwe", "123", "sdf43"}
+	values := []interface{}{1, "34", 5.5, 3}
 	var ttl time.Duration = time.Second * 10
 	cache := New(maxSize, ttl)
 	ctx := context.Background()
@@ -214,12 +213,12 @@ func TestLRU(t *testing.T) {
 		cache.Put(ctx, keys[i], values[i], ttl)
 	}
 
-	newItemKey :=  "newKey"
+	newItemKey := "newKey"
 	newItemValue := ":)0)))"
-	inputKeys := []string {"qweer", "qwe", "123", "sdf43", newItemKey}
-	expectedValues := []interface{} {nil, "34", 5.5, 3, newItemValue}
-	expectedErrors := []error {ErrKeyNotFound, nil, nil, nil, nil}
-	
+	inputKeys := []string{"qweer", "qwe", "123", "sdf43", newItemKey}
+	expectedValues := []interface{}{nil, "34", 5.5, 3, newItemValue}
+	expectedErrors := []error{ErrKeyNotFound, nil, nil, nil, nil}
+
 	cache.Put(ctx, newItemKey, newItemValue, ttl)
 
 	for i := 0; i < len(inputKeys); i++ {
@@ -230,22 +229,22 @@ func TestLRU(t *testing.T) {
 		exected := expectedValues[i]
 		if recived != exected {
 			t.Errorf("exected %v, recived %v", exected, recived)
-		} 
+		}
 	}
 }
 
 func TestCollector(t *testing.T) {
 	maxSize := 10
 	len := 4
-	keys := []string {"qweer", "qwe", "123", "sdf43"}
-	values := []interface{} {1, "34", 5.5, 3}
+	keys := []string{"qweer", "qwe", "123", "sdf43"}
+	values := []interface{}{1, "34", 5.5, 3}
 	var ttl time.Duration = time.Second * 3
 	cache := New(maxSize, ttl)
 	cache.StartCollector()
 	defer cache.StartCollector()
 	ctx := context.Background()
 
-	expectedErrors := []error {nil, nil, nil, nil, ErrDataNotValid}
+	expectedErrors := []error{nil, nil, nil, nil, ErrDataNotValid}
 
 	for i := 0; i < len; i++ {
 		err := cache.Put(ctx, keys[i], values[i], ttl)

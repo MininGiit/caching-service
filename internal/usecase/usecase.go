@@ -28,7 +28,7 @@ func (uc *UseCase) GetAll(ctx context.Context) (keys []string, values []interfac
 
 func (uc *UseCase) Evict(ctx context.Context, key string) (value interface{}, err error) {
 	return uc.repository.Evict(ctx, key)
-} 
+}
 
 func (uc *UseCase) EvictAll(ctx context.Context) error {
 	return uc.repository.EvictAll(ctx)

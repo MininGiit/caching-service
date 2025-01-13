@@ -8,17 +8,17 @@ import (
 )
 
 type Server struct {
-	httpServer   *http.Server
-	logger		logger.Logger
+	httpServer *http.Server
+	logger     logger.Logger
 }
 
-func NewServer(ctx context.Context, hostPort string, uc usecase.IUseCase, logger logger.Logger) *Server{
+func NewServer(ctx context.Context, hostPort string, uc usecase.IUseCase, logger logger.Logger) *Server {
 	handler := NewHandler(ctx, uc, logger)
 	router := handler.InitRouter()
 	return &Server{
 		httpServer: &http.Server{
-			Handler:      router,
-			Addr:         hostPort,
+			Handler: router,
+			Addr:    hostPort,
 		},
 		logger: logger,
 	}
@@ -29,6 +29,6 @@ func (s *Server) StartServer() {
 	s.httpServer.ListenAndServe()
 }
 
-func (s *Server)Shutdown(ctx context.Context) error{
+func (s *Server) Shutdown(ctx context.Context) error {
 	return s.httpServer.Shutdown(ctx)
 }

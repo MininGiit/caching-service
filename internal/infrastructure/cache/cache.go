@@ -10,52 +10,52 @@ import (
 )
 
 var (
-	ErrKeyNotFound = errors.New("key not found")
-	ErrCacheEmpty = errors.New("cache is empty")
+	ErrKeyNotFound  = errors.New("key not found")
+	ErrCacheEmpty   = errors.New("cache is empty")
 	ErrDataNotValid = errors.New("data is not valid")
 )
 
 type Item struct {
-	key   		string
-	value 		interface{}
-	expiresAt 	time.Time //время протухания кеша
-	keyInTimeQueue 	*list.Element
+	key            string
+	value          interface{}
+	expiresAt      time.Time //время протухания кеша
+	keyInTimeQueue *list.Element
 }
 
 type LRUCache struct {
-	size				int
-	maxSize				int
-	defaultTtl			time.Duration
-	timeQueue			*list.List	//содержит только ключи data
-	mutex				sync.Mutex
-	data				map[string] *Item
-	cleaning			atomic.Bool
-	intervalCleaning 	time.Duration
+	size             int
+	maxSize          int
+	defaultTtl       time.Duration
+	timeQueue        *list.List //содержит только ключи data
+	mutex            sync.Mutex
+	data             map[string]*Item
+	cleaning         atomic.Bool
+	intervalCleaning time.Duration
 }
 
 func New(maxSize int, defaultTtl time.Duration) *LRUCache {
-	data := make(map[string] *Item, maxSize)
+	data := make(map[string]*Item, maxSize)
 	timeQueue := list.New()
 	return &LRUCache{
-		size: 		0,
-		maxSize: 	maxSize,
-		defaultTtl: defaultTtl,
-		timeQueue: 	timeQueue,
-		data: 		data,
+		size:             0,
+		maxSize:          maxSize,
+		defaultTtl:       defaultTtl,
+		timeQueue:        timeQueue,
+		data:             data,
 		intervalCleaning: time.Second * 5,
 	}
 }
 
 func validator(value interface{}) error {
 	switch value.(type) {
-		case int:
-			return nil
-		case float64:
-			return nil
-		case string:
-			return nil
-		default:
-			return ErrDataNotValid
+	case int:
+		return nil
+	case float64:
+		return nil
+	case string:
+		return nil
+	default:
+		return ErrDataNotValid
 	}
 }
 
@@ -77,7 +77,7 @@ func (c *LRUCache) Put(ctx context.Context, key string, value interface{}, ttl t
 			front := c.timeQueue.Front()
 			key := front.Value.(string)
 			c.timeQueue.Remove(front)
-			delete(c.data, key)	
+			delete(c.data, key)
 			c.size--
 		}
 		c.size++
@@ -87,10 +87,10 @@ func (c *LRUCache) Put(ctx context.Context, key string, value interface{}, ttl t
 	}
 	expiresAt := time.Now().Add(ttl)
 	newItem := &Item{
-			key: 	key,
-			value: 	value,
-			expiresAt: expiresAt,
-			keyInTimeQueue: element,
+		key:            key,
+		value:          value,
+		expiresAt:      expiresAt,
+		keyInTimeQueue: element,
 	}
 	c.data[key] = newItem
 	return nil
@@ -110,8 +110,8 @@ func (c *LRUCache) Get(ctx context.Context, key string) (value interface{}, expi
 		delete(c.data, key)
 		return nil, time.Now(), ErrKeyNotFound
 	}
-	return item.value, item.expiresAt, nil 
-} 
+	return item.value, item.expiresAt, nil
+}
 
 func (c *LRUCache) GetAll(ctx context.Context) (keys []string, values []interface{}, err error) {
 	c.mutex.Lock()
@@ -146,14 +146,14 @@ func (c *LRUCache) Evict(ctx context.Context, key string) (value interface{}, er
 	c.timeQueue.Remove(element)
 	c.size--
 	delete(c.data, key)
-	return item.value, nil 
+	return item.value, nil
 }
 
 func (c *LRUCache) EvictAll(ctx context.Context) error {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	c.size = 0
-	c.data = make(map[string] *Item)
+	c.data = make(map[string]*Item)
 	c.timeQueue = list.New()
 	return nil
 }
@@ -181,18 +181,18 @@ func (c *LRUCache) roundCleaning() {
 	}
 }
 
-func (c *LRUCache) rottenDataCollector (){
+func (c *LRUCache) rottenDataCollector() {
 	ticker := time.NewTicker(c.intervalCleaning)
-    defer ticker.Stop()
+	defer ticker.Stop()
 	for {
 		if !c.cleaning.Load() {
 			return
 		}
 		select {
-        case <-ticker.C:
-   			c.roundCleaning()
-		default: 
+		case <-ticker.C:
+			c.roundCleaning()
+		default:
 			continue
-        }
+		}
 	}
 }

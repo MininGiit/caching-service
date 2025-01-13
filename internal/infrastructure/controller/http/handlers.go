@@ -12,15 +12,15 @@ import (
 )
 
 type Handler struct {
-	ctx 	context.Context
-	uc 		usecase.IUseCase
-	logger	logger.Logger
+	ctx    context.Context
+	uc     usecase.IUseCase
+	logger logger.Logger
 }
 
 func NewHandler(ctx context.Context, uc usecase.IUseCase, logger logger.Logger) *Handler {
 	return &Handler{
-		ctx: ctx,
-		uc: uc,
+		ctx:    ctx,
+		uc:     uc,
 		logger: logger,
 	}
 }
@@ -35,14 +35,14 @@ func (h *Handler) InitRouter() *mux.Router {
 	return router
 }
 
-func (h *Handler) get(w http.ResponseWriter, r *http.Request){
+func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-    key := string(params["key"])
+	key := string(params["key"])
 	h.logger.Debug("Handling GET request, key:", key)
 	value, expiresAt, err := h.uc.Get(h.ctx, key)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		h.logger.Warn("Key not found", "key" ,key , "error", err)
+		h.logger.Warn("Key not found", "key", key, "error", err)
 		return
 	}
 	response := NewResponseItem(key, value, expiresAt)
@@ -50,7 +50,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request){
 	json.NewEncoder(w).Encode(response)
 }
 
-func (h *Handler) getAll(w http.ResponseWriter, r *http.Request){
+func (h *Handler) getAll(w http.ResponseWriter, r *http.Request) {
 	h.logger.Debug("Handling GET request for all data")
 	keys, values, err := h.uc.GetAll(h.ctx)
 	if err != nil {
@@ -63,12 +63,12 @@ func (h *Handler) getAll(w http.ResponseWriter, r *http.Request){
 	json.NewEncoder(w).Encode(response)
 }
 
-func (h *Handler) post(w http.ResponseWriter, r *http.Request){
+func (h *Handler) post(w http.ResponseWriter, r *http.Request) {
 	h.logger.Debug("Handling POST request")
 	var request RequestItem
 	json.NewDecoder(r.Body).Decode(&request)
 
-	err := h.uc.Put(h.ctx, request.Key, request.Value, time.Second * time.Duration(request.TtlSeconds))
+	err := h.uc.Put(h.ctx, request.Key, request.Value, time.Second*time.Duration(request.TtlSeconds))
 	if err != nil {
 		h.logger.Warn("Invalid request body", "error", err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -78,10 +78,10 @@ func (h *Handler) post(w http.ResponseWriter, r *http.Request){
 	w.WriteHeader(http.StatusCreated)
 }
 
-func (h *Handler) delete(w http.ResponseWriter, r *http.Request){
+func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 	h.logger.Debug("Handling DELETE request")
 	params := mux.Vars(r)
-    key := string(params["key"])
+	key := string(params["key"])
 	_, err := h.uc.Evict(h.ctx, key)
 	if err != nil {
 		h.logger.Warn("Key not found", "key", key, "error", err)
@@ -92,7 +92,7 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request){
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *Handler) deleteAll(w http.ResponseWriter, r *http.Request){
+func (h *Handler) deleteAll(w http.ResponseWriter, r *http.Request) {
 	h.logger.Debug("Handling DELETE request for all data")
 	h.uc.EvictAll(h.ctx)
 	w.WriteHeader(http.StatusNoContent)

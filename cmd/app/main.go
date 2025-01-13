@@ -25,11 +25,11 @@ func main() {
 	go server.StartServer()
 
 	sigChan := make(chan os.Signal, 1)
-    signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 	sig := <-sigChan
 	logger.Info("Received signal:", "sig", sig)
 	if err := server.Shutdown(ctx); err != nil {
-        logger.Error("Shutdown:", "err", err)
-    }
+		logger.Error("Shutdown:", "err", err)
+	}
 	logger.Info("Gracefull Shutdown")
 }
