@@ -28,3 +28,7 @@ func (s *Server) StartServer() {
 	s.logger.Info("Start server", "addr", s.httpServer.Addr)
 	s.httpServer.ListenAndServe()
 }
+
+func (s *Server)Shutdown(ctx context.Context) error{
+	return s.httpServer.Shutdown(ctx)
+}

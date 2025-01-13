@@ -8,6 +8,9 @@ import (
 	"cachingService/internal/usecase"
 	"context"
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
@@ -19,5 +22,14 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	server := http.NewServer(ctx, cfg.Server.PortHost, uc, logger)
-	server.StartServer()
+	go server.StartServer()
+
+	sigChan := make(chan os.Signal, 1)
+    signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	sig := <-sigChan
+	logger.Info("Received signal:", "sig", sig)
+	if err := server.Shutdown(ctx); err != nil {
+        logger.Error("Shutdown:", "err", err)
+    }
+	logger.Info("Gracefully shut down")
 }
