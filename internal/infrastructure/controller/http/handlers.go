@@ -12,11 +12,14 @@ import (
 
 type Handler struct {
 	ctx context.Context
-	uc 	*usecase.UseCase
+	uc 	usecase.IUseCase
 }
 
-func NewHandler(uc *usecase.UseCase) *Handler {
-	return &Handler{uc: uc}
+func NewHandler(ctx context.Context, uc usecase.IUseCase) *Handler {
+	return &Handler{
+		ctx: ctx,
+		uc: uc,
+	}
 }
 
 func (h *Handler) InitRouter() *mux.Router {
