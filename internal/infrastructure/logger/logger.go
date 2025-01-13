@@ -1,3 +1,6 @@
+/*
+Пакет logger содержит имплементацию логера "cachingService/internal/logger"
+*/
 package logger
 
 import (
@@ -5,10 +8,12 @@ import (
 	"os"
 )
 
+// SlogLogger структура логгра на основе slog
 type SlogLogger struct {
 	slog *slog.Logger
 }
 
+// New создание экземпляра логгера
 func New(level string) *SlogLogger {
 	var slogLevel slog.Level
 	switch level {
@@ -29,18 +34,22 @@ func New(level string) *SlogLogger {
 	return &SlogLogger{slog: logger}
 }
 
+// Debug логирование на уровне DEBUG
 func (l *SlogLogger) Debug(msg string, args ...interface{}) {
 	l.slog.Debug(msg, args...)
 }
 
+// Info логирование на уровне INFO
 func (l *SlogLogger) Info(msg string, args ...interface{}) {
 	l.slog.Info(msg, args...)
 }
 
+// Warn логирование на уровне WARN
 func (l *SlogLogger) Warn(msg string, args ...interface{}) {
 	l.slog.Warn(msg, args...)
 }
 
+// Error логирование на уровне ERROR
 func (l *SlogLogger) Error(msg string, args ...interface{}) {
 	l.slog.Error(msg, args...)
 }

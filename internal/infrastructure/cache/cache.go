@@ -1,3 +1,6 @@
+/*
+Пакет cache имплементирует "cachingService/internal/repository/cache", содержит реализацию кеша с использованием алгоритма LRU
+*/
 package cache
 
 import (
@@ -15,26 +18,28 @@ var (
 	ErrDataNotValid = errors.New("data is not valid")
 )
 
-type Item struct {
+type item struct {
 	key            string
 	value          interface{}
-	expiresAt      time.Time //время протухания кеша
+	expiresAt      time.Time
 	keyInTimeQueue *list.Element
 }
 
+// LRUCahe представляет структуру, реализующую LRU кеш
 type LRUCache struct {
 	size             int
 	maxSize          int
 	defaultTtl       time.Duration
-	timeQueue        *list.List //содержит только ключи data
+	timeQueue        *list.List
 	mutex            sync.Mutex
-	data             map[string]*Item
+	data             map[string]*item
 	cleaning         atomic.Bool
 	intervalCleaning time.Duration
 }
 
+// New() создаёт новый экземпляр кеша,
 func New(maxSize int, defaultTtl time.Duration) *LRUCache {
-	data := make(map[string]*Item, maxSize)
+	data := make(map[string]*item, maxSize)
 	timeQueue := list.New()
 	return &LRUCache{
 		size:             0,
@@ -59,6 +64,7 @@ func validator(value interface{}) error {
 	}
 }
 
+// Put запись данных в кэш
 func (c *LRUCache) Put(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
@@ -86,7 +92,7 @@ func (c *LRUCache) Put(ctx context.Context, key string, value interface{}, ttl t
 		ttl = c.defaultTtl
 	}
 	expiresAt := time.Now().Add(ttl)
-	newItem := &Item{
+	newItem := &item{
 		key:            key,
 		value:          value,
 		expiresAt:      expiresAt,
@@ -96,6 +102,7 @@ func (c *LRUCache) Put(ctx context.Context, key string, value interface{}, ttl t
 	return nil
 }
 
+// Get получение данных из кэша по ключу
 func (c *LRUCache) Get(ctx context.Context, key string) (value interface{}, expiresAt time.Time, err error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
@@ -113,6 +120,7 @@ func (c *LRUCache) Get(ctx context.Context, key string) (value interface{}, expi
 	return item.value, item.expiresAt, nil
 }
 
+// GetAll получение всего наполнения кэша в виде двух слайсов: слайса ключей и слайса значений. Пары ключ-значения из кэша распол
 func (c *LRUCache) GetAll(ctx context.Context) (keys []string, values []interface{}, err error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
@@ -135,6 +143,7 @@ func (c *LRUCache) GetAll(ctx context.Context) (keys []string, values []interfac
 	return keys, values, nil
 }
 
+// Evict ручное удаление данных по ключу
 func (c *LRUCache) Evict(ctx context.Context, key string) (value interface{}, err error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
@@ -149,11 +158,12 @@ func (c *LRUCache) Evict(ctx context.Context, key string) (value interface{}, er
 	return item.value, nil
 }
 
+// EvictAll ручная инвалидация всего кэша
 func (c *LRUCache) EvictAll(ctx context.Context) error {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	c.size = 0
-	c.data = make(map[string]*Item)
+	c.data = make(map[string]*item)
 	c.timeQueue = list.New()
 	return nil
 }

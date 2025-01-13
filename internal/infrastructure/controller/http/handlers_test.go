@@ -24,15 +24,15 @@ func TestHandlerGet(t *testing.T) {
 		Key:   resKey,
 		Err:   resErr,
 	}
-	expectedResponse := NewResponseItem(resKey, resValue, time.Now())
+	expectedResponse := newResponseItem(resKey, resValue, time.Now())
 	uc := usecase.New(cache)
 	logger := logger.New("ERROR")
-	handler := NewHandler(context.Background(), uc, logger)
-	router := handler.InitRouter()
+	handler := newHandler(context.Background(), uc, logger)
+	router := handler.initRouter()
 	req, _ := http.NewRequest("GET", "/api/lru/test", nil)
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, req)
-	var response ResponseItem
+	var response responseItem
 	err := json.NewDecoder(recorder.Body).Decode(&response)
 	assert.NoError(t, err, "Should not return an error")
 	assert.Equal(t, http.StatusOK, recorder.Code, "status code should be 200")
@@ -43,8 +43,8 @@ func TestHandlerGetNotFound(t *testing.T) {
 	cache := &mock.MockCache{}
 	uc := usecase.New(cache)
 	logger := logger.New("ERROR")
-	handler := NewHandler(context.Background(), uc, logger)
-	router := handler.InitRouter()
+	handler := newHandler(context.Background(), uc, logger)
+	router := handler.initRouter()
 	request, _ := http.NewRequest("GET", "/api/lru/te", nil)
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, request)
@@ -55,8 +55,8 @@ func TestHandlerPost(t *testing.T) {
 	cache := &mock.MockCache{}
 	uc := usecase.New(cache)
 	logger := logger.New("ERROR")
-	handler := NewHandler(context.Background(), uc, logger)
-	router := handler.InitRouter()
+	handler := newHandler(context.Background(), uc, logger)
+	router := handler.initRouter()
 	requestBody := []byte(`{"key": "validKey", "value": [1, 3, 4], "ttlSeconds": 1}`) // Correct json body
 	request, _ := http.NewRequest("POST", "/api/lru", bytes.NewReader(requestBody))   // Create post request
 	recorder := httptest.NewRecorder()
@@ -68,8 +68,8 @@ func TestHandlerPostBad(t *testing.T) {
 	cache := &mock.MockCache{}
 	uc := usecase.New(cache)
 	logger := logger.New("ERROR")
-	handler := NewHandler(context.Background(), uc, logger)
-	router := handler.InitRouter()
+	handler := newHandler(context.Background(), uc, logger)
+	router := handler.initRouter()
 	requestBody := []byte(`{"key": "validKey", "value": "test", "ttlSeconds": 1}`)  // Correct json body
 	request, _ := http.NewRequest("POST", "/api/lru", bytes.NewReader(requestBody)) // Create post request
 	recorder := httptest.NewRecorder()
@@ -82,8 +82,8 @@ func TestHandlerDelete(t *testing.T) {
 	cache := &mock.MockCache{Key: resKey}
 	uc := usecase.New(cache)
 	logger := logger.New("error")
-	handler := NewHandler(context.Background(), uc, logger)
-	router := handler.InitRouter()
+	handler := newHandler(context.Background(), uc, logger)
+	router := handler.initRouter()
 	requestBody := []byte(`{"key": "validKey", "value": [1, 3, 4], "ttlSeconds": 1}`)
 	request, _ := http.NewRequest("DELETE", "/api/lru/test", bytes.NewReader(requestBody))
 	recorder := httptest.NewRecorder()
@@ -96,8 +96,8 @@ func TestHandlerDeleteNotFound(t *testing.T) {
 	cache := &mock.MockCache{Key: resKey}
 	uc := usecase.New(cache)
 	logger := logger.New("ERROR")
-	handler := NewHandler(context.Background(), uc, logger)
-	router := handler.InitRouter()
+	handler := newHandler(context.Background(), uc, logger)
+	router := handler.initRouter()
 	requestBody := []byte(`{"key": "validKey", "value": [1, 3, 4], "ttlSeconds": 1}`)
 	request, _ := http.NewRequest("DELETE", "/api/lru/tt", bytes.NewReader(requestBody))
 	recorder := httptest.NewRecorder()
@@ -109,8 +109,8 @@ func TestHandlerDeleteAll(t *testing.T) {
 	cache := &mock.MockCache{Size: 0}
 	uc := usecase.New(cache)
 	logger := logger.New("ERROR")
-	handler := NewHandler(context.Background(), uc, logger)
-	router := handler.InitRouter()
+	handler := newHandler(context.Background(), uc, logger)
+	router := handler.initRouter()
 	request, _ := http.NewRequest("DELETE", "/api/lru", nil)
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, request)
@@ -125,16 +125,16 @@ func TestHandlerGetAll(t *testing.T) {
 		Keyes:  expectedKeys,
 		Values: expectedValues,
 	}
-	expectedResponse := NewResponseItems(expectedKeys, expectedValues)
+	expectedResponse := newResponseItems(expectedKeys, expectedValues)
 
 	uc := usecase.New(cache)
 	logger := logger.New("ERROR")
-	handler := NewHandler(context.Background(), uc, logger)
-	router := handler.InitRouter()
+	handler := newHandler(context.Background(), uc, logger)
+	router := handler.initRouter()
 	req, _ := http.NewRequest("GET", "/api/lru", nil)
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, req)
-	var response ResponseItems
+	var response responseItems
 	err := json.NewDecoder(recorder.Body).Decode(&response)
 	assert.NoError(t, err, "Should not return an error")
 	assert.Equal(t, http.StatusOK, recorder.Code, "status code should be 200")

@@ -11,21 +11,21 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type Handler struct {
+type handler struct {
 	ctx    context.Context
 	uc     usecase.IUseCase
 	logger logger.Logger
 }
 
-func NewHandler(ctx context.Context, uc usecase.IUseCase, logger logger.Logger) *Handler {
-	return &Handler{
+func newHandler(ctx context.Context, uc usecase.IUseCase, logger logger.Logger) *handler {
+	return &handler{
 		ctx:    ctx,
 		uc:     uc,
 		logger: logger,
 	}
 }
 
-func (h *Handler) InitRouter() *mux.Router {
+func (h *handler) initRouter() *mux.Router {
 	router := mux.NewRouter()
 	router.HandleFunc("/api/lru/{key}", h.get).Methods("GET")
 	router.HandleFunc("/api/lru", h.getAll).Methods("GET")
@@ -35,7 +35,7 @@ func (h *Handler) InitRouter() *mux.Router {
 	return router
 }
 
-func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
+func (h *handler) get(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	key := string(params["key"])
 	h.logger.Debug("Handling GET request, key:", key)
@@ -45,12 +45,12 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 		h.logger.Warn("Key not found", "key", key, "error", err)
 		return
 	}
-	response := NewResponseItem(key, value, expiresAt)
+	response := newResponseItem(key, value, expiresAt)
 	h.logger.Debug("GET request succeed", "key", key)
 	json.NewEncoder(w).Encode(response)
 }
 
-func (h *Handler) getAll(w http.ResponseWriter, r *http.Request) {
+func (h *handler) getAll(w http.ResponseWriter, r *http.Request) {
 	h.logger.Debug("Handling GET request for all data")
 	keys, values, err := h.uc.GetAll(h.ctx)
 	if err != nil {
@@ -58,14 +58,14 @@ func (h *Handler) getAll(w http.ResponseWriter, r *http.Request) {
 		h.logger.Warn("Cache is empty", "error", err)
 		return
 	}
-	response := NewResponseItems(keys, values)
+	response := newResponseItems(keys, values)
 	h.logger.Debug("GET request for all succeed")
 	json.NewEncoder(w).Encode(response)
 }
 
-func (h *Handler) post(w http.ResponseWriter, r *http.Request) {
+func (h *handler) post(w http.ResponseWriter, r *http.Request) {
 	h.logger.Debug("Handling POST request")
-	var request RequestItem
+	var request requestItem
 	json.NewDecoder(r.Body).Decode(&request)
 
 	err := h.uc.Put(h.ctx, request.Key, request.Value, time.Second*time.Duration(request.TtlSeconds))
@@ -78,7 +78,7 @@ func (h *Handler) post(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
+func (h *handler) delete(w http.ResponseWriter, r *http.Request) {
 	h.logger.Debug("Handling DELETE request")
 	params := mux.Vars(r)
 	key := string(params["key"])
@@ -92,7 +92,7 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *Handler) deleteAll(w http.ResponseWriter, r *http.Request) {
+func (h *handler) deleteAll(w http.ResponseWriter, r *http.Request) {
 	h.logger.Debug("Handling DELETE request for all data")
 	h.uc.EvictAll(h.ctx)
 	w.WriteHeader(http.StatusNoContent)

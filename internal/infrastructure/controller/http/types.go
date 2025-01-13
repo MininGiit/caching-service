@@ -2,34 +2,34 @@ package http
 
 import "time"
 
-type ResponseItem struct {
+type responseItem struct {
 	Key       string        `json:"key"`
 	Value     interface{}   `json:"value"`
 	ExpiresAt time.Duration `json:"expires_at"`
 }
 
-type ResponseItems struct {
+type responseItems struct {
 	Keys   []string      `json:"keys"`
 	Values []interface{} `json:"values"`
 }
 
-type RequestItem struct {
+type requestItem struct {
 	Key        string      `json:"key"`
 	Value      interface{} `json:"value"`
 	TtlSeconds int         `json:"ttl_seconds"`
 }
 
-func NewResponseItem(key string, value interface{}, expiresTime time.Time) *ResponseItem {
+func newResponseItem(key string, value interface{}, expiresTime time.Time) *responseItem {
 	expiresAt := expiresTime.Sub(time.Now())
-	return &ResponseItem{
+	return &responseItem{
 		Key:       key,
 		Value:     value,
 		ExpiresAt: expiresAt,
 	}
 }
 
-func NewResponseItems(keys []string, values []interface{}) *ResponseItems {
-	return &ResponseItems{
+func newResponseItems(keys []string, values []interface{}) *responseItems {
+	return &responseItems{
 		Keys:   keys,
 		Values: values,
 	}

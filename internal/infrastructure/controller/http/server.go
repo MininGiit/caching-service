@@ -1,3 +1,6 @@
+/*
+Пакет http содержит реализацию http сервера для взамиодейсвтия с сервисом по протоколу http
+*/
 package http
 
 import (
@@ -7,14 +10,16 @@ import (
 	"net/http"
 )
 
+// Server структура http сервера
 type Server struct {
 	httpServer *http.Server
 	logger     logger.Logger
 }
 
+// NewServer создание нового экземпляра сервера
 func NewServer(ctx context.Context, hostPort string, uc usecase.IUseCase, logger logger.Logger) *Server {
-	handler := NewHandler(ctx, uc, logger)
-	router := handler.InitRouter()
+	handler := newHandler(ctx, uc, logger)
+	router := handler.initRouter()
 	return &Server{
 		httpServer: &http.Server{
 			Handler: router,
@@ -24,11 +29,13 @@ func NewServer(ctx context.Context, hostPort string, uc usecase.IUseCase, logger
 	}
 }
 
+// StartServer запуск сервера
 func (s *Server) StartServer() {
 	s.logger.Info("Start server", "addr", s.httpServer.Addr)
 	s.httpServer.ListenAndServe()
 }
 
+// Shutdown корректное завершение работы сервера
 func (s *Server) Shutdown(ctx context.Context) error {
 	return s.httpServer.Shutdown(ctx)
 }
