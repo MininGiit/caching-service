@@ -2,10 +2,11 @@ package cache
 
 import (
 	"container/list"
-	"sync"
-	"time"
 	"context"
 	"errors"
+	"sync"
+	"sync/atomic"
+	"time"
 )
 
 var (
@@ -13,8 +14,6 @@ var (
 	ErrCacheEmpty = errors.New("cache is empty")
 	ErrDataNotValid = errors.New("data is not valid")
 )
-
-
 
 type Item struct {
 	key   		string
@@ -24,12 +23,14 @@ type Item struct {
 }
 
 type LRUCache struct {
-	size		int
-	maxSize		int
-	defaultTtl	time.Duration
-	timeQueue	*list.List	//содержит только ключи data
-	mutex		sync.Mutex
-	data		map[string] *Item
+	size				int
+	maxSize				int
+	defaultTtl			time.Duration
+	timeQueue			*list.List	//содержит только ключи data
+	mutex				sync.Mutex
+	data				map[string] *Item
+	cleaning			atomic.Bool
+	intervalCleaning 	time.Duration
 }
 
 func New(maxSize int, defaultTtl time.Duration) *LRUCache {
@@ -41,6 +42,7 @@ func New(maxSize int, defaultTtl time.Duration) *LRUCache {
 		defaultTtl: defaultTtl,
 		timeQueue: 	timeQueue,
 		data: 		data,
+		intervalCleaning: time.Second * 5,
 	}
 }
 
@@ -154,4 +156,43 @@ func (c *LRUCache) EvictAll(ctx context.Context) error {
 	c.data = make(map[string] *Item)
 	c.timeQueue = list.New()
 	return nil
+}
+
+func (c *LRUCache) StartCollector() {
+	c.cleaning.Store(true)
+	go c.rottenDataCollector()
+}
+
+func (c *LRUCache) StopCollector() {
+	c.cleaning.Store(false)
+}
+
+func (c *LRUCache) roundCleaning() {
+	for key, item := range c.data {
+		if !c.cleaning.Load() {
+			return
+		}
+		if item.expiresAt.Before(time.Now()) {
+			element := item.keyInTimeQueue
+			c.timeQueue.Remove(element)
+			c.size--
+			delete(c.data, key)
+		}
+	}
+}
+
+func (c *LRUCache) rottenDataCollector (){
+	ticker := time.NewTicker(c.intervalCleaning)
+    defer ticker.Stop()
+	for {
+		if !c.cleaning.Load() {
+			return
+		}
+		select {
+        case <-ticker.C:
+   			c.roundCleaning()
+		default: 
+			continue
+        }
+	}
 }

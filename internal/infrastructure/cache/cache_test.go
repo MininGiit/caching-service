@@ -233,3 +233,28 @@ func TestLRU(t *testing.T) {
 		} 
 	}
 }
+
+func TestCollector(t *testing.T) {
+	maxSize := 10
+	len := 4
+	keys := []string {"qweer", "qwe", "123", "sdf43"}
+	values := []interface{} {1, "34", 5.5, 3}
+	var ttl time.Duration = time.Second * 3
+	cache := New(maxSize, ttl)
+	cache.StartCollector()
+	defer cache.StartCollector()
+	ctx := context.Background()
+
+	expectedErrors := []error {nil, nil, nil, nil, ErrDataNotValid}
+
+	for i := 0; i < len; i++ {
+		err := cache.Put(ctx, keys[i], values[i], ttl)
+		if err != expectedErrors[i] {
+			t.Errorf("exected error: %v, recived error: %v", expectedErrors[i], err)
+		}
+	}
+	time.Sleep(time.Second * 6)
+	if cache.size != 0 {
+		t.Errorf("the sixe do not match: exected %v, recived %v", 0, cache.size)
+	}
+}
