@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"cachingService/internal/infrastructure/logger"
 	mock "cachingService/internal/mocks/cache"
 	"cachingService/internal/usecase"
 	"context"
@@ -25,7 +26,8 @@ func TestHandlerGet(t *testing.T) {
 	}
 	expectedResponse := NewResponseItem(resKey, resValue, time.Now())
 	uc := usecase.New(cache)
-	handler := NewHandler(context.Background(), uc)
+	logger := logger.New("ERROR")
+	handler := NewHandler(context.Background(), uc, logger)
 	router := handler.InitRouter()
 	req, _ := http.NewRequest("GET", "/api/lru/test", nil)
 	recorder := httptest.NewRecorder()
@@ -40,7 +42,8 @@ func TestHandlerGet(t *testing.T) {
 func TestHandlerGetNotFound(t *testing.T) {
 	cache := &mock.MockCache {}
 	uc := usecase.New(cache)
-	handler := NewHandler(context.Background(), uc)
+	logger := logger.New("ERROR")
+	handler := NewHandler(context.Background(), uc, logger)
 	router := handler.InitRouter()
 	request, _ := http.NewRequest("GET", "/api/lru/te", nil)
 	recorder := httptest.NewRecorder()
@@ -51,7 +54,8 @@ func TestHandlerGetNotFound(t *testing.T) {
 func TestHandlerPost(t *testing.T) {
 	cache := &mock.MockCache {}
 	uc := usecase.New(cache)
-	handler := NewHandler(context.Background(), uc)
+	logger := logger.New("ERROR")
+	handler := NewHandler(context.Background(), uc, logger)
 	router := handler.InitRouter()
 	requestBody := []byte(`{"key": "validKey", "value": [1, 3, 4], "ttlSeconds": 1}`) // Correct json body
 	request, _ := http.NewRequest("POST", "/api/lru", bytes.NewReader(requestBody)) // Create post request
@@ -63,7 +67,8 @@ func TestHandlerPost(t *testing.T) {
 func TestHandlerPostBad(t *testing.T) {
 	cache := &mock.MockCache {}
 	uc := usecase.New(cache)
-	handler := NewHandler(context.Background(), uc)
+	logger := logger.New("ERROR")
+	handler := NewHandler(context.Background(), uc, logger)
 	router := handler.InitRouter()
 	requestBody := []byte(`{"key": "validKey", "value": "test", "ttlSeconds": 1}`) // Correct json body
 	request, _ := http.NewRequest("POST", "/api/lru", bytes.NewReader(requestBody)) // Create post request
@@ -76,7 +81,8 @@ func TestHandlerDelete(t *testing.T) {
 	resKey := "test"
 	cache := &mock.MockCache {Key: resKey}
 	uc := usecase.New(cache)
-	handler := NewHandler(context.Background(),uc)
+	logger := logger.New("error")
+	handler := NewHandler(context.Background(), uc, logger)
 	router := handler.InitRouter()
 	requestBody := []byte(`{"key": "validKey", "value": [1, 3, 4], "ttlSeconds": 1}`)
 	request, _ := http.NewRequest("DELETE", "/api/lru/test", bytes.NewReader(requestBody))
@@ -89,7 +95,8 @@ func TestHandlerDeleteNotFound(t *testing.T) {
 	resKey := "test"
 	cache := &mock.MockCache {Key: resKey}
 	uc := usecase.New(cache)
-	handler := NewHandler(context.Background(), uc)
+	logger := logger.New("ERROR")
+	handler := NewHandler(context.Background(), uc, logger)
 	router := handler.InitRouter()
 	requestBody := []byte(`{"key": "validKey", "value": [1, 3, 4], "ttlSeconds": 1}`)
 	request, _ := http.NewRequest("DELETE", "/api/lru/tt", bytes.NewReader(requestBody))
@@ -101,7 +108,8 @@ func TestHandlerDeleteNotFound(t *testing.T) {
 func TestHandlerDeleteAll(t *testing.T) {
 	cache := &mock.MockCache {Size: 0}
 	uc := usecase.New(cache)
-	handler := NewHandler(context.Background(), uc)
+	logger := logger.New("ERROR")
+	handler := NewHandler(context.Background(), uc, logger)
 	router := handler.InitRouter()
 	request, _ := http.NewRequest("DELETE", "/api/lru", nil)
 	recorder := httptest.NewRecorder()
@@ -120,7 +128,8 @@ func TestHandlerGetAll(t *testing.T) {
 	expectedResponse := NewResponseItems(expectedKeys, expectedValues)
 
 	uc := usecase.New(cache)
-	handler := NewHandler(context.Background(), uc)
+	logger := logger.New("ERROR")
+	handler := NewHandler(context.Background(), uc, logger)
 	router := handler.InitRouter()
 	req, _ := http.NewRequest("GET", "/api/lru", nil)
 	recorder := httptest.NewRecorder()
