@@ -7,7 +7,6 @@ import (
 	"cachingService/internal/infrastructure/logger"
 	"cachingService/internal/usecase"
 	"context"
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -15,7 +14,6 @@ import (
 
 func main() {
 	cfg := config.Init()
-	fmt.Println(cfg)
 	cache := cache.New(cfg.Cache.MaxSize, cfg.Cache.DefaultTtl)
 	cache.StartCollector()
 	defer cache.StartCollector()
